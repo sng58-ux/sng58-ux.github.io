@@ -1,0 +1,30 @@
+---
+about:
+  template: jolla
+  id: about-block
+  image: "DSCF0367 (1).jpeg"
+  links:
+    - icon: github
+      text: Github
+      href: https://github.com/sng58-ux
+    - icon: instagram
+      text: Instagram
+      href: https://instagram.com/sara.nicolegc
+    - icon: envelope
+      text: Email
+      href: "mailto:sng58@case.edu"  
+---
+
+::: {#about-block}
+:::
+
+# Welcome to my website!
+
+Hello my name is Sara Giuffre-Coppersmith and I am a dual Undergraduate and Graduate student at Case Western Reserve University obtaining a Neuroscience B.S. with Computer Science and Chemistry minors and a Biomedical and Health Informatics M.S. I am currently an Undergraduate Research Student in the Dawn Taylor Lab at the Cleveland Clinic Lerner Research Institute and I am the Software Engineer for the project Mind Mouse.
+
+```{=html}
+<div  style="margin: 30px; text-align: center;">
+<a class="btn btn-primary" href="https://www.marvinschmitt.com/blog/website-tutorial-quarto/" role="button" target="_blank" style="padding: 15px 30px;">View the tutorial for this template (+ download link)</a>
+</div>
+```
+

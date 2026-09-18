@@ -1,0 +1,17 @@
+---
+title: Projects
+---
+
+## My Current Education, Experiences, and Projects
+
+I am an Undergraduate and Graduate Student at Case Western Reserve University obtaining a B.S. in Neuroscience with Computer Science and Chemistry Minors and a Biomedical and Health Informatics M.S. with an expected graduation date of May 2028. I am proficient in Java, MATLAB, and Python and I have experience in C++, HTML, and R. I am currently working in the Dawn Taylor Lab at the Cleveland Clinic Lerner Research Institute as an Undergraduate Research Student in which I utilize MATLAB to write custom scripts to synthesize Dr. Taylor's EEG data. Additionally as a part of this lab I am coding an app through MATLAB's App Developer that will be able to take in any EEG data and remove the unwanted peaks and save the data as a new file. Concurrently I am the Software Engineer for the project Mind Mouse, a BCI-controlled computer mouse that will be able to move and perform left and right clicks based on the users intention. This project is still in the early stages of development through the neurotechnology club, NeurEx, at Case Western Reserve University. 
+
+----
+
+
+
+```{=html}
+<div  style="margin: 30px; text-align: center;">
+<a class="btn btn-primary" href="https://www.marvinschmitt.com/blog/website-tutorial-quarto/" role="button" target="_blank" style="padding: 15px 30px;">View the tutorial for this template (+ download link)</a>
+</div>
+```

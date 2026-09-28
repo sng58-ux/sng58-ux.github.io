@@ -1,0 +1,77 @@
+---
+title: "Building a Blood Pressure Dashboard with NHANES Data"
+author: "Sara Giuffre-Coppersmith"
+date: "2026-09-28"
+categories: [Quarto, NHANES, R, dashboard]
+description: "How I built an interactive Quarto dashboard to explore blood pressure, BMI, and smoking in U.S. adults, and what I found."
+---
+
+## Introduction
+
+High blood pressure is one of the most common health conditions in the United States, and it is closely linked to heart disease and stroke. For Task B, I built a Quarto dashboard that uses national health survey data to explore how systolic blood pressure relates to a few familiar characteristics: body mass index (BMI), smoking status, age, sex, and race/ethnicity.
+
+This post explains why I built the dashboard, how I built it, the hypotheses I tested, and what I learned along the way. You can explore the dashboard here: [FILL IN: link to your published dashboard].
+
+## The Data
+
+The dashboard uses data from the National Health and Nutrition Examination Survey (NHANES), specifically the 2017 to March 2020 pre-pandemic cycle. NHANES combines interviews with physical examinations, which makes it a rich source for questions about health.
+
+I combined four NHANES data sets, all matched on the participant identifier (`SEQN`):
+
+- **Demographics** (`P_DEMO`): age, sex, and race/ethnicity
+- **Body measures** (`P_BMX`): BMI
+- **Blood pressure** (`P_BPXO`): up to three systolic readings per person
+- **Smoking questionnaire** (`P_SMQ`): smoking history
+
+I kept adults aged 21 to 79 who were both interviewed and examined. Age 80 is a catch-all category for everyone 80 and older, so I excluded it. This left [FILL IN: number] participants. I did not remove people with missing values when building the data, so the dashboard reports how much data is missing for each variable.
+
+My systolic blood pressure measure is the average of whichever readings were available for each participant.
+
+## Hypotheses and Analysis Plan
+
+I focused on two questions:
+
+- **H1:** Higher BMI is associated with higher systolic blood pressure, even after adjusting for age, sex, and smoking status.
+- **H2:** Systolic blood pressure differs by smoking status after adjusting for age, sex, and BMI.
+
+To test H1, I first fit a simple linear regression of systolic blood pressure on BMI, then a second model that also included age, sex, and smoking status. Comparing the two shows how much of the BMI relationship changes once other factors are taken into account. To test H2, I used the smoking term from the adjusted model.
+
+## Building the Dashboard
+
+I built the dashboard in Quarto using R. It is organized into pages so that each topic is easy to find:
+
+1. **Overview:** key indicators (participant count, average age, average BMI, average systolic blood pressure) and the hypotheses
+2. **Blood Pressure:** how the first and second readings compare, and the overall distribution
+3. **Demographics:** blood pressure by sex and by race/ethnicity
+4. **BMI and Blood Pressure:** the H1 analysis
+5. **Smoking:** the H2 analysis
+6. **Explore the Data:** summary tables, a missing-data summary, and a searchable, filterable table of participants
+7. **About the Data:** the variable list, the data source, and the render date
+
+A few design choices were deliberate. Value boxes put the key numbers first, so a reader gets the headline without scrolling. Two scatterplots are interactive with `plotly`, and the participant table uses `DT` so readers can sort and filter it. The static plots include alt text, and I used a colorblind-friendly palette. The page shows its render date, and it says clearly that this date is not when the NHANES data were updated.
+
+## Results
+
+**H1 (BMI and blood pressure).** In the unadjusted model, each one-unit increase in BMI was associated with a [FILL IN: number] mmHg [higher/lower] systolic blood pressure (p [FILL IN]). After adjusting for age, sex, and smoking, the estimate was [FILL IN: number] mmHg per BMI unit (p [FILL IN]). [FILL IN: one sentence on whether the association got stronger, weaker, or stayed about the same after adjustment, and what that suggests.]
+
+**H2 (smoking and blood pressure).** After adjustment, the test for smoking status gave p [FILL IN]. [FILL IN: one or two sentences on whether the data support a difference and which groups looked different, using the boxplot on the Smoking page.]
+
+**Other patterns.** [FILL IN: one or two observations from the dashboard, such as differences by sex or race/ethnicity, the agreement between first and second readings, or how much data was missing.]
+
+## Limitations
+
+Several caveats matter for reading these results:
+
+- **Association is not causation.** This is observational, cross-sectional data. It can show that two things move together, not that one causes the other.
+- **No survey weights.** NHANES uses a complex sampling design, and I did not apply the sampling weights, so these results describe this sample and are not estimates for the whole U.S. population.
+- **Blood pressure is averaged.** Averaging up to three readings smooths out noise, but people with fewer readings are measured less precisely.
+- **Self-reported smoking.** Smoking status comes from questionnaire answers, which can be inaccurate.
+- **Simple models.** I adjusted for a few variables. Many other factors affect blood pressure, such as diet, medication, and family history.
+
+## What I Learned
+
+[FILL IN: two or three sentences in your own voice. For example, what was hardest about the project, what you would do differently, or something you learned about Quarto, R, or NHANES. A personal note here makes the post more interesting.]
+
+## Conclusion
+
+This project showed how a dashboard can turn a large health data set into something readers can explore for themselves. [FILL IN: one or two sentences summarizing your main takeaway from H1 and H2.] If you'd like to explore the data yourself, the dashboard is linked at the top of this post.

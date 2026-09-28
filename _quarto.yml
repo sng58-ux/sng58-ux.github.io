@@ -19,9 +19,9 @@ website:
       - text: "CV"
         href: cv/index.qmd
       - text: "Task B Dashboard"     
-        href: projects/task-b/taskbdashboard.qmd
+        href: projects/taskbdashboard.qmd
       - text: "Task B Blog"
-        href: projects/task-b/taskbdashboard.qmd
+        href: projects/taskb-blog.qmd
     
     # your social media handles
     right:

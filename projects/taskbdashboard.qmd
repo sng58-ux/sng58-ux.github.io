@@ -1,0 +1,325 @@
+---
+title: "Blood Pressure and Health Characteristics"
+author: "Sara Giuffre-Coppersmith"
+format:
+  dashboard:
+    theme: cosmo
+---
+
+```{r}
+#| include: false
+
+library(tidyverse)
+library(knitr)
+library(plotly)   # interactive plots
+library(DT)       # interactive tables
+
+data <- read_csv("data/nhanes_dashboard.csv", show_col_types = FALSE)
+
+num_cols <- c("RIDAGEYR", "BMXBMI", "BPXOSY1", "BPXOSY2", "BPXOSY3", "systolic_bp")
+data <- data %>%
+  mutate(across(any_of(num_cols), ~ suppressWarnings(as.numeric(.x))))
+
+n            <- nrow(data)
+average_age  <- mean(data$RIDAGEYR, na.rm = TRUE)
+average_bmi  <- mean(data$BMXBMI, na.rm = TRUE)
+average_bp   <- mean(data$systolic_bp, na.rm = TRUE)
+
+bmi_bp_data <- data %>%
+  select(BMXBMI, systolic_bp) %>%
+  drop_na()
+
+bmi_bp_cor   <- cor(bmi_bp_data$BMXBMI, bmi_bp_data$systolic_bp)
+bmi_bp_model <- lm(systolic_bp ~ BMXBMI, data = bmi_bp_data)
+bmi_bp_p     <- summary(bmi_bp_model)$coefficients["BMXBMI", "Pr(>|t|)"]
+
+model_data <- data %>%
+  select(systolic_bp, BMXBMI, RIDAGEYR, sex, smoking) %>%
+  drop_na()
+
+adj_model  <- lm(systolic_bp ~ BMXBMI + RIDAGEYR + sex + smoking, data = model_data)
+adj_coefs  <- summary(adj_model)$coefficients
+adj_bmi_est <- adj_coefs["BMXBMI", "Estimate"]
+adj_bmi_p   <- adj_coefs["BMXBMI", "Pr(>|t|)"]
+
+
+smoking_p <- anova(adj_model)["smoking", "Pr(>F)"]
+
+missing_values <- data %>%
+  summarise(
+    Age         = sum(is.na(RIDAGEYR)),
+    BMI         = sum(is.na(BMXBMI)),
+    Systolic_BP = sum(is.na(systolic_bp)),
+    Sex         = sum(is.na(sex)),
+    Race        = sum(is.na(race)),
+    Smoking     = sum(is.na(smoking))
+  )
+```
+
+# Overview
+
+## Row {height=22%}
+
+```{r}
+#| content: valuebox
+#| title: "Participants"
+list(icon = "people", color = "primary", value = format(n, big.mark = ","))
+```
+
+```{r}
+#| content: valuebox
+#| title: "Average age (years)"
+list(icon = "calendar", color = "info", value = round(average_age, 1))
+```
+
+```{r}
+#| content: valuebox
+#| title: "Average BMI"
+list(icon = "speedometer2", color = "warning", value = round(average_bmi, 1))
+```
+
+```{r}
+#| content: valuebox
+#| title: "Average systolic BP (mmHg)"
+list(icon = "heart-pulse", color = "danger", value = round(average_bp, 1))
+```
+
+## Row
+
+### Purpose
+
+Using NHANES health data, this dashboard explores patterns between blood pressure and  participant characteristics including age, BMI, sex, race/ethnicity, smoking status, and systolic blood pressure. The goal of this dashboard is to make the  NHANES data easier to understand for a general public-health audience through visualizations, summaries, and hypothesis tests.
+
+### Hypotheses
+
+**Hypothesis 1:** A higher BMI is associated with a higher systolic blood pressure, even after considering age, sex, and smoking status.
+
+**Hypothesis 2:** Systolic blood pressure changes due to smoking status after considering age, sex, and BMI.
+
+# Blood Pressure
+
+## Row
+
+### First vs. second reading
+
+```{r}
+#| fig-alt: "Comparing first and second systolic blood pressure readings"
+p <- ggplot(data, aes(x = BPXOSY1, y = BPXOSY2)) +
+  geom_point(alpha = 0.45, color = "#2c7fb8", na.rm = TRUE) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  labs(
+    x = "First systolic BP reading",
+    y = "Second systolic BP reading"
+  ) +
+  theme_minimal()
+
+ggplotly(p)
+```
+
+### Distribution of systolic BP
+
+```{r}
+#| fig-alt: "Systolic blood pressure across all participants."
+ggplot(data, aes(x = systolic_bp)) +
+  geom_histogram(bins = 30, fill = "#2c7fb8", color = "white", na.rm = TRUE) +
+  labs(x = "Systolic blood pressure (mmHg)", y = "Number of participants") +
+  theme_minimal()
+```
+
+# Demographics
+
+## Row
+
+### Systolic BP by sex
+
+```{r}
+#| fig-alt: "Systolic blood pressure for each sex category."
+ggplot(data %>% drop_na(sex, systolic_bp), aes(x = sex, y = systolic_bp, fill = sex)) +
+  geom_boxplot(show.legend = FALSE) +
+  scale_fill_viridis_d(option = "D", begin = 0.3, end = 0.8) +
+  labs(x = "Sex", y = "Systolic blood pressure (mmHg)") +
+  theme_minimal()
+```
+
+### Systolic BP by race/ethnicity
+
+```{r}
+#| fig-alt: "Systolic blood pressure for each race and ethnicity category."
+ggplot(data %>% drop_na(race, systolic_bp), aes(x = race, y = systolic_bp, fill = race)) +
+  geom_boxplot(show.legend = FALSE) +
+  scale_fill_viridis_d(option = "D") +
+  coord_flip() +
+  labs(x = "Race/Ethnicity", y = "Systolic blood pressure (mmHg)") +
+  theme_minimal()
+```
+
+# BMI and Blood Pressure
+
+## Row {height=22%}
+
+```{r}
+#| content: valuebox
+#| title: "BMI-BP correlation"
+list(icon = "graph-up", color = "primary", value = round(bmi_bp_cor, 2))
+```
+
+```{r}
+#| content: valuebox
+#| title: "Adjusted BMI effect (mmHg per BMI unit)"
+list(icon = "activity", color = "info", value = round(adj_bmi_est, 2))
+```
+
+## Row
+
+### BMI vs. systolic BP (Hypothesis 1)
+
+```{r}
+p <- ggplot(bmi_bp_data, aes(x = BMXBMI, y = systolic_bp)) +
+  geom_point(alpha = 0.4, color = "#2c7fb8") +
+  geom_smooth(method = "lm", se = TRUE, color = "#d95f0e") +
+  labs(x = "BMI", y = "Systolic blood pressure (mmHg)") +
+  theme_minimal()
+
+ggplotly(p)
+```
+
+### Results for Hypothesis 1
+
+```{r}
+h1_results <- data.frame(
+  Model = c("Unadjusted", "Adjusted for age, sex, smoking"),
+  `BMI coefficient` = round(c(coef(bmi_bp_model)["BMXBMI"], adj_bmi_est), 3),
+  `p-value` = c(
+    format.pval(bmi_bp_p, digits = 3, eps = 0.001),
+    format.pval(adj_bmi_p, digits = 3, eps = 0.001)
+  ),
+  `Sample size` = c(nrow(bmi_bp_data), nrow(model_data)),
+  check.names = FALSE
+)
+
+kable(h1_results)
+```
+
+## Row
+
+### BMI distribution
+
+```{r}
+#| fig-alt: "Body mass index across all participants."
+ggplot(data, aes(x = BMXBMI)) +
+  geom_histogram(bins = 30, fill = "#2c7fb8", color = "white", na.rm = TRUE) +
+  labs(x = "BMI", y = "Number of participants") +
+  theme_minimal()
+```
+
+# Smoking
+
+## Row {height=22%}
+
+```{r}
+#| content: valuebox
+#| title: "Hypotheis 2: smoking p-value (adjusted)"
+list(
+  icon = "clipboard-data",
+  color = "primary",
+  value = format.pval(smoking_p, digits = 3, eps = 0.001)
+)
+```
+
+## Row
+
+### Smoking status
+
+```{r}
+#| fig-alt: "Number of participants in each smoking status category."
+smoking_counts <- data %>%
+  filter(!is.na(smoking)) %>%
+  count(smoking)
+
+ggplot(smoking_counts, aes(x = smoking, y = n, fill = smoking)) +
+  geom_col(show.legend = FALSE) +
+  scale_fill_viridis_d(option = "D", begin = 0.2, end = 0.85) +
+  labs(x = "Smoking status", y = "Number of participants") +
+  theme_minimal()
+```
+
+### Smoking status by sex
+
+```{r}
+#| fig-alt: "Smoking status counts within each sex category."
+smoking_sex_counts <- data %>%
+  filter(!is.na(smoking), !is.na(sex)) %>%
+  count(sex, smoking)
+
+ggplot(smoking_sex_counts, aes(x = sex, y = n, fill = smoking)) +
+  geom_col(position = "dodge") +
+  scale_fill_viridis_d(option = "D", begin = 0.2, end = 0.85) +
+  labs(x = "Sex", y = "Number of participants", fill = "Smoking status") +
+  theme_minimal()
+```
+
+## Row
+
+### Systolic BP by smoking status (Hypothesis 2)
+
+```{r}
+#| fig-alt: "Systolic blood pressure for each smoking status category."
+ggplot(data %>% drop_na(smoking, systolic_bp), aes(x = smoking, y = systolic_bp, fill = smoking)) +
+  geom_boxplot(show.legend = FALSE) +
+  scale_fill_viridis_d(option = "D", begin = 0.2, end = 0.85) +
+  labs(x = "Smoking status", y = "Systolic blood pressure (mmHg)") +
+  theme_minimal()
+```
+
+# Explore the Data
+
+## Row
+
+### Participant characteristics
+
+```{r}
+age_summary <- data.frame(
+  Measure = c(
+    "Mean age", "Median age",
+    "Mean BMI", "Median BMI",
+    "Mean systolic BP", "Median systolic BP"
+  ),
+  Value = round(
+    c(
+      mean(data$RIDAGEYR, na.rm = TRUE),   median(data$RIDAGEYR, na.rm = TRUE),
+      mean(data$BMXBMI, na.rm = TRUE),     median(data$BMXBMI, na.rm = TRUE),
+      mean(data$systolic_bp, na.rm = TRUE), median(data$systolic_bp, na.rm = TRUE)
+    ),
+    2
+  )
+)
+
+kable(age_summary)
+```
+
+### Data completeness
+
+```{r}
+missing_summary <- data.frame(
+  Variable = names(missing_values),
+  Missing  = as.numeric(missing_values[1, ])
+)
+
+kable(missing_summary, col.names = c("Variable", "Missing Values"))
+```
+
+## Row
+
+### Browse and filter the participant data
+
+```{r}
+# Interactive table: sort, search, and filter each column
+data %>%
+  select(SEQN, RIDAGEYR, sex, race, smoking, BMXBMI, systolic_bp) %>%
+  datatable(
+    filter = "top",
+    rownames = FALSE,
+    options = list(pageLength = 10, scrollX = TRUE)
+  )
+```
+

@@ -13,11 +13,13 @@ website:
     logo: IMG_5097.jpeg
     
     # your sub-pages
-    left:
+   left:
       - text: "Projects"
         href: projects/index.qmd
       - text: "CV"
         href: cv/index.qmd
+      - text: "Task B Dashboard"     
+        href: projects/task-b/taskbdashboard.qmd
     
     # your social media handles
     right:

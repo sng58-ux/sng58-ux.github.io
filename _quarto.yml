@@ -20,6 +20,8 @@ website:
         href: cv/index.qmd
       - text: "Task B Dashboard"     
         href: projects/task-b/taskbdashboard.qmd
+      - text: "Task B Blog"
+        href: projects/task-b/taskbdashboard.qmd
     
     # your social media handles
     right:
